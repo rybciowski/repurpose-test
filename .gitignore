@@ -1,0 +1,32 @@
+# Pliki cache Pythona
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Środowiska wirtualne
+.Python
+.venv/
+env/
+venv/
+ENV/
+
+# Pliki specyficzne dla niektórych edytorów i systemów
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Pliki instancji Flaska i zmienne środowiskowe
+instance/
+.env
+*.env
+
+# Lokalne bazy danych SQLite
+*.sqlite3
+*.db
+database.db
+
+# Przesłane pliki i wygenerowane wideo
+/uploads/*
+/generated/*

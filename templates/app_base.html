@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel Użytkownika{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --background-color: #0D1117; 
+            --container-bg: rgba(23, 29, 42, 0.5); 
+            --primary-text: #e6edf3;
+            --secondary-text: #8b949e;
+            --accent-color: #00d1ff;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --danger-color: #f85149;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            background-image: radial-gradient(ellipse 80% 80% at 50% -20%,rgba(120, 119, 198, 0.15), transparent);
+            color: var(--primary-text);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: var(--container-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .card {
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.05), 0 8px 20px rgba(0, 0, 0, 0.3);
+            color: var(--primary-text);
+        }
+
+        .text-muted {
+            color: var(--secondary-text) !important;
+        }
+
+        .btn-outline-primary {
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        .btn-outline-primary:hover {
+            color: #000;
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        .dropdown-menu {
+             background: var(--container-bg);
+             border-color: var(--border-color);
+             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .dropdown-item {
+            color: var(--primary-text);
+        }
+        .dropdown-item:hover {
+            background-color: rgba(0, 209, 255, 0.1);
+            color: var(--accent-color);
+        }
+        .dropdown-item.text-danger {
+            color: var(--danger-color) !important;
+        }
+        .dropdown-item.text-danger:hover {
+            background-color: rgba(248, 81, 73, 0.1);
+            color: var(--danger-color) !important;
+        }
+        .impersonation-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 1031; background-color: #ffc107;
+            color: #000; text-align: center; padding: 0.5rem;
+            font-weight: bold; border-bottom: 3px solid #e0a800;
+        }
+        .impersonation-bar a { color: #000; text-decoration: underline; }
+        body.impersonating { padding-top: 50px; }
+    </style>
+</head>
+<body class="{% if session.get('is_impersonating') %}impersonating{% endif %}">
+    
+    {% if session.get('is_impersonating') %}
+    <div class="impersonation-bar">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        Jesteś wcielony w użytkownika <strong>{{ session.get('username') }}</strong>. 
+        <a href="{{ url_for('stop_impersonating') }}">Zakończ wcielenie</a>.
+    </div>
+    {% endif %}
+
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <span style="color: var(--accent-color); font-weight: 600;">dJ</span> Panel
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <img src="{{ url_for('static', filename='avatars/' + g.user.avatar) }}" width="24" height="24" class="rounded-circle me-1">
+                            {{ g.user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ url_for('tickets') }}">Moje Zgłoszenia</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('profile') }}">Mój Profil</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('generation') }}">Generacja</a></li>
+                            <li><hr class="dropdown-divider" style="border-top-color: var(--border-color);"></li>
+                            <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Wyloguj się</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    {% block main_content %}
+    <main class="container mt-5">
+        {% block content %}{% endblock %}
+    </main>
+    {% endblock main_content %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

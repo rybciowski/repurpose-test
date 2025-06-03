@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel Admina{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background-color: #0D1117;
+            --sidebar-bg: #161B22;
+            --content-bg: #010409;
+            --container-bg: rgba(23, 29, 42, 0.7);
+            --primary-text: #e6edf3;
+            --secondary-text: #8b949e;
+            --accent-color: #00d1ff;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --hover-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            background-color: var(--content-bg);
+            color: var(--primary-text);
+        }
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+        }
+        .sidebar .nav-link {
+            color: var(--secondary-text);
+            font-size: 1rem;
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            align-items: center;
+            border-radius: 0.5rem;
+            margin-bottom: 0.25rem;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+        }
+        .sidebar .nav-link i {
+            margin-right: 1rem; font-size: 1.2rem;
+            width: 24px; text-align: center;
+        }
+        .sidebar .nav-link:hover {
+            color: var(--primary-text);
+            background-color: var(--hover-bg);
+        }
+        .sidebar .nav-link.active {
+            color: #000;
+            background-color: var(--accent-color);
+            font-weight: 600;
+        }
+        .sidebar .nav-link.active i {
+            color: #000 !important;
+        }
+        .content-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .topbar {
+            background-color: var(--sidebar-bg);
+            padding: 0.75rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem;
+            position: relative;
+            background-color: var(--background-color);
+            background-image: radial-gradient(ellipse 80% 80% at 50% -20%,rgba(120, 119, 198, 0.15), transparent);
+        }
+        
+        .card, .list-group-item {
+            background-color: var(--container-bg);
+            background-image: radial-gradient(ellipse 60% 90% at 50% -20%, rgba(255, 255, 255, 0.05), transparent);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.05), 0 8px 20px rgba(0, 0, 0, 0.3);
+            color: var(--primary-text);
+        }
+        .list-group-item {
+            background-color: transparent;
+        }
+        .text-muted {
+            color: var(--secondary-text) !important;
+        }
+        a {
+            color: var(--accent-color);
+        }
+        a:hover {
+            color: #83eaff;
+        }
+        .dropdown-item a, .sidebar a, .topbar a, .pagination a, .list-group-item a {
+            color: inherit;
+        }
+        
+        .card-header {
+            background-color: rgba(255,255,255,0.03);
+            border-bottom-color: var(--border-color);
+        }
+        .table {
+            --bs-table-color: var(--primary-text);
+            --bs-table-bg: transparent;
+            --bs-table-striped-color: var(--primary-text);
+            --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+            --bs-table-active-color: var(--primary-text);
+            --bs-table-active-bg: rgba(255, 255, 255, 0.04);
+            --bs-table-hover-color: var(--primary-text);
+            --bs-table-hover-bg: rgba(255, 255, 255, 0.04);
+            border-color: var(--border-color);
+        }
+        .form-control, .form-select {
+            background-color: rgba(0,0,0,0.3);
+            border-color: var(--border-color);
+            color: var(--primary-text);
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: rgba(0,0,0,0.3);
+            border-color: var(--accent-color);
+            color: var(--primary-text);
+            box-shadow: 0 0 0 3px rgba(0, 209, 255, 0.2);
+        }
+        .form-control::placeholder {
+            color: var(--secondary-text);
+            opacity: 0.6;
+        }
+        .form-text {
+            color: var(--secondary-text);
+        }
+
+        /* Poprawione style dla kart statystyk (bez ramki) */
+        .card.bg-primary {
+            background-color: rgba(13, 110, 253, 0.35) !important;
+        }
+        .card.bg-success {
+           background-color: rgba(25, 135, 84, 0.35) !important;
+        }
+        .card.bg-info {
+           background-color: rgba(13, 202, 240, 0.35) !important;
+        }
+        
+        .impersonation-bar {
+            position: fixed; top: 0; left: 280px; right: 0;
+            z-index: 1031; background-color: #ffc107; color: #000;
+            text-align: center; padding: 0.5rem; font-weight: bold;
+            border-bottom: 3px solid #e0a800;
+        }
+        .impersonation-bar a { color: #000; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="sidebar d-flex flex-column p-3">
+        <a href="{{ url_for('admin_dashboard') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <i class="bi bi-shield-lock-fill me-2" style="font-size: 2rem; color: var(--accent-color);"></i>
+            <span class="fs-4">Panel Admina</span>
+        </a>
+        <hr style="border-top-color: var(--border-color);">
+        <ul class="nav nav-pills flex-column mb-auto">
+            <li class="nav-item">
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+                    <i class="bi bi-grid-1x2-fill"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_users') }}" class="nav-link {% if request.endpoint in ['admin_users', 'admin_user_detail', 'edit_user'] %}active{% endif %}">
+                    <i class="bi bi-people-fill"></i> Użytkownicy
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_tickets', status='oczekujace') }}" class="nav-link {% if request.endpoint == 'admin_tickets' %}active{% endif %}">
+                    <i class="bi bi-chat-left-text-fill"></i> Zgłoszenia
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_keys') }}" class="nav-link {% if request.endpoint == 'admin_keys' %}active{% endif %}">
+                    <i class="bi bi-key-fill"></i> Klucze
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('audit_log') }}" class="nav-link {% if request.endpoint == 'audit_log' %}active{% endif %}">
+                    <i class="bi bi-journal-text"></i> Dziennik Zdarzeń
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('admin_settings') }}" class="nav-link {% if request.endpoint == 'admin_settings' %}active{% endif %}">
+                    <i class="bi bi-gear-fill"></i> Ustawienia
+                </a>
+            </li>
+        </ul>
+        <hr style="border-top-color: var(--border-color);">
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                {% set user_for_avatar = g.user if not session.get('is_impersonating') else User.query.get(session.get('original_user_id')) %}
+                <img src="{{ url_for('static', filename='avatars/' + user_for_avatar.avatar) }}" alt="Avatar" width="32" height="32" class="rounded-circle me-2">
+                <strong>{{ session.get('original_user_username', session.get('username', 'Admin')) }}</strong>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark text-small shadow" style="background: var(--container-bg); border-color: var(--border-color);">
+                 <li><a class="dropdown-item" href="{{ url_for('profile') }}">Mój Profil</a></li>
+                 <li><hr class="dropdown-divider" style="border-top-color: var(--border-color);"></li>
+                <li><a class="dropdown-item" href="{{ url_for('logout') }}">Wyloguj się</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="content-wrapper">
+        <header class="topbar d-flex justify-content-end">
+            <form action="{{ url_for('admin_search') }}" method="get" class="w-50">
+                <div class="input-group">
+                    <input type="search" name="q" class="form-control" placeholder="Szukaj użytkownika, ticketu, klucza..." aria-label="Szukaj" value="{{ request.args.get('q', '') }}">
+                    <button class="btn btn-outline-secondary" type="submit" style="border-color: var(--border-color);"><i class="bi bi-search"></i></button>
+                </div>
+            </form>
+        </header>
+
+        <main class="main-content">
+            {% if session.get('is_impersonating') %}
+            <div class="impersonation-bar">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Jesteś wcielony w użytkownika <strong>{{ session.get('username') }}</strong>. 
+                <a href="{{ url_for('stop_impersonating') }}">Zakończ wcielenie</a>.
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,43 @@
+{% extends 'app_base.html' %}
+
+{% block title %}Panel Użytkownika{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Witaj, {{ user.username }}!</h2>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="card mb-4">
+    <div class="card-header bg-transparent border-bottom-0 pt-3">
+        <h5>Status Twojego Konta</h5>
+    </div>
+    <div class="card-body">
+        {% if user.access_expires_at %}
+            <p class="fs-5">Twój dostęp jest ważny do: <strong>{{ user.access_expires_at.strftime('%Y-%m-%d %H:%M') }} UTC</strong></p>
+            {% if remaining_time and remaining_time.days >= 0 %}
+            <p class="mb-0 text-muted">Pozostało: <strong>{{ remaining_time.days }} dni, {{ (remaining_time.seconds // 3600) }} godzin</strong></p>
+            {% else %}
+            <p class="mb-0 text-danger">Twój dostęp wygasł.</p>
+            {% endif %}
+        {% elif user.is_admin %}
+             <p class="fs-5 mb-0">Posiadasz konto administratora z nieograniczonym dostępem.</p>
+        {% else %}
+            <p class="mb-0">Wystąpił błąd przy pobieraniu statusu Twojego dostępu.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body text-center text-muted">
+        Witaj w swoim panelu. Stąd możesz zarządzać swoim kontem i zgłoszeniami.
+    </div>
+</div>
+{% endblock %}

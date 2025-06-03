@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Mój Profil{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Zarządzaj swoim profilem</h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                Dane Publiczne
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="form_type" value="profile">
+
+                    <div class="text-center mb-4">
+                        <img src="{{ url_for('static', filename='avatars/' + g.user.avatar) }}?v={{ range(1, 1000) | random }}" alt="Avatar" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">Zmień awatar</label>
+                        <input class="form-control" type="file" id="avatar" name="avatar" accept="image/png, image/jpeg">
+                        <div class="form-text">Maksymalny rozmiar 2MB. Dozwolone formaty: JPG, PNG.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="bio" class="form-label">Twoje Bio</label>
+                        <textarea class="form-control" id="bio" name="bio" rows="4" placeholder="Opowiedz coś o sobie...">{{ g.user.bio or '' }}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Zapisz profil</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                Zmiana Hasła
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="form_type" value="password">
+
+                    <div class="mb-3">
+                        <label for="current_password" class="form-label">Obecne hasło</label>
+                        <input type="password" class="form-control" id="current_password" name="current_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">Nowe hasło</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Potwierdź nowe hasło</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    <button type="submit" class="btn btn-warning">Zmień hasło</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="text-center mt-3">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Wróć do panelu</a>
+</div>
+{% endblock %}

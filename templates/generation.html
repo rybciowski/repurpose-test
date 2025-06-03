@@ -1,0 +1,718 @@
+{% extends 'app_base.html' %}
+
+{% block title %}Panel Generacji{% endblock %}
+
+{% block main_content %}
+<style>
+    html.generation-page-active {
+        scroll-behavior: smooth !important;
+        scrollbar-width: none !important; 
+    }
+    body.generation-page-active::-webkit-scrollbar {
+        display: none !important; 
+    }
+    body.generation-page-active {
+        -ms-overflow-style: none !important;
+    }
+    .settings-panel-scrollable {
+        max-height: calc(100vh - 220px); /* Zmniejszone dla lepszego dopasowania */
+        overflow-y: auto;
+        scroll-behavior: smooth;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        padding-right: 15px; /* Dodatkowy padding, aby suwaki nie były ucinane */
+    }
+    .settings-panel-scrollable::-webkit-scrollbar {
+        display: none;
+    }
+    .form-label-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.25rem; /* Mniejszy margines dolny */
+    }
+    .form-label-group .form-check-label {
+        margin-bottom: 0;
+        font-size: 0.9rem; /* Mniejsza czcionka etykiety */
+    }
+    .form-range-label {
+        font-size: 0.8rem !important; /* Mniejsza czcionka dla etykiet suwaków */
+        margin-top: 0.2rem !important; /* Mniejszy margines górny */
+    }
+    .badge-value {
+        background-color: var(--accent-color);
+        color: #000;
+        padding: 0.2em 0.4em;
+        font-size: 0.8em;
+        border-radius: 0.25rem;
+        min-width: 25px; /* Minimalna szerokość dla badge */
+        display: inline-block;
+        text-align: center;
+    }
+    hr.my-2 {
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.75rem !important; /* Zwiększony margines dolny dla hr */
+    }
+    .card-header, .card-body, .card-footer {
+        padding: 0.75rem 1rem; /* Mniejszy padding dla kart */
+    }
+    .form-control-sm { /* Klasa dla mniejszego inputu pliku */
+        padding: .25rem .5rem;
+        font-size: .875rem;
+        border-radius: .2rem;
+        height: auto;
+    }
+    .text-success {
+        color: #198754 !important; /* Bootstrap success green */
+    }
+    .text-danger {
+        color: #dc3545 !important; /* Bootstrap danger red */
+    }
+</style>
+
+<main class="container-fluid mt-3 px-lg-4 px-md-3 px-2">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show mb-3" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form id="generationForm" method="POST" enctype="multipart/form-data" action="{{ url_for('generation') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" id="server_video_filename" name="server_video_filename" value="">
+
+        <div class="row">
+            <div class="col-lg-4 mb-3 mb-lg-0">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="bi bi-sliders me-2"></i>Ustawienia
+                    </div>
+                    <div class="card-body settings-panel-scrollable">
+                        <h5 class="mt-2 mb-2 text-muted" style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Plik Wejściowy</h5>
+                        <div class="mb-3">
+                            <label for="video_file_input" class="form-label small">Wybierz plik wideo (MP4, maks. {{ max_video_size_mb }}MB)</label>
+                            <input class="form-control form-control-sm" type="file" id="video_file_input" name="video_file_input_for_ajax" accept=".mp4">
+                            <div id="upload_status" class="form-text small mt-1"></div>
+                        </div>
+                        <hr class="my-2">
+
+                        <h5 class="mt-3 mb-2 text-muted" style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Przetwarzanie Wideo</h5>
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="stabilizacja_enabled">Stabilizacja</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="stabilizacja_enabled" name="stabilizacja_enabled" data-bs-toggle="collapse" data-bs-target="#stabilizacja_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="stabilizacja_collapse">
+                                <label for="stabilizacja_smoothing" class="form-label small text-muted mt-1 form-range-label">Wygładzanie (0-30): <span id="stabilizacja_smoothing_display" class="badge-value">10</span></label>
+                                <input type="range" class="form-range" min="0" max="30" step="1" id="stabilizacja_smoothing" name="stabilizacja_smoothing" value="10">
+
+                                <label for="stabilizacja_zoom" class="form-label small text-muted mt-1 form-range-label">Zoom stabilizacji (0-20): <span id="stabilizacja_zoom_display" class="badge-value">0</span></label>
+                                <input type="range" class="form-range" min="0" max="20" step="1" id="stabilizacja_zoom" name="stabilizacja_zoom" value="0">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="przysp_wideo_enabled">Przyspieszanie Wideo</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="przysp_wideo_enabled" name="przysp_wideo_enabled" data-bs-toggle="collapse" data-bs-target="#przysp_wideo_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="przysp_wideo_collapse">
+                                <label for="przysp_wideo_value" class="form-label small text-muted mt-1 form-range-label">Procent (0-30%): <span id="przysp_wideo_value_display" class="badge-value">3</span>%</label>
+                                <input type="range" class="form-range" min="0" max="30" step="1" id="przysp_wideo_value" name="przysp_wideo_value" value="3">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="odbicie_lustrzane_enabled">Odbicie Lustrzane</label>
+                                <div class="form-check form-switch">
+                                     <input class="form-check-input" type="checkbox" role="switch" id="odbicie_lustrzane_enabled" name="odbicie_lustrzane_enabled" checked>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                             <div class="form-label-group">
+                                <label class="form-check-label" for="obrot_wideo_enabled">Obrót Wideo</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="obrot_wideo_enabled" name="obrot_wideo_enabled" data-bs-toggle="collapse" data-bs-target="#obrot_wideo_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="obrot_wideo_collapse">
+                                <label for="obrot_wideo_value" class="form-label small text-muted mt-1 form-range-label">Stopnie (0-30): <span id="obrot_wideo_value_display" class="badge-value">1</span></label>
+                                <input type="range" class="form-range" min="0" max="30" step="1" id="obrot_wideo_value" name="obrot_wideo_value" value="1">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="crop_wideo_enabled">Przycięcie (Zoom Cyfrowy)</label>
+                                <div class="form-check form-switch">
+                                     <input class="form-check-input" type="checkbox" role="switch" id="crop_wideo_enabled" name="crop_wideo_enabled" data-bs-toggle="collapse" data-bs-target="#crop_wideo_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="crop_wideo_collapse">
+                                <label for="crop_wideo_value" class="form-label small text-muted mt-1 form-range-label">Piksele (0-30): <span id="crop_wideo_value_display" class="badge-value">10</span></label>
+                                <input type="range" class="form-range" min="0" max="30" step="1" id="crop_wideo_value" name="crop_wideo_value" value="10">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="jasnosc_enabled">Jasność</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="jasnosc_enabled" name="jasnosc_enabled" data-bs-toggle="collapse" data-bs-target="#jasnosc_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="jasnosc_collapse">
+                                <label for="jasnosc_value" class="form-label small text-muted mt-1 form-range-label">Poziom (0-30): <span id="jasnosc_value_display" class="badge-value">2</span></label>
+                                <input type="range" class="form-range" min="0" max="30" step="1" id="jasnosc_value" name="jasnosc_value" value="2">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="kontrast_enabled">Kontrast</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="kontrast_enabled" name="kontrast_enabled" data-bs-toggle="collapse" data-bs-target="#kontrast_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="kontrast_collapse">
+                                <label for="kontrast_value" class="form-label small text-muted mt-1 form-range-label">Poziom (0-40): <span id="kontrast_value_display" class="badge-value">15</span></label>
+                                <input type="range" class="form-range" min="0" max="40" step="1" id="kontrast_value" name="kontrast_value" value="15">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                             <div class="form-label-group">
+                                <label class="form-check-label" for="nasycenie_enabled">Nasycenie</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="nasycenie_enabled" name="nasycenie_enabled" data-bs-toggle="collapse" data-bs-target="#nasycenie_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="nasycenie_collapse">
+                                <label for="nasycenie_value" class="form-label small text-muted mt-1 form-range-label">Poziom (0-40): <span id="nasycenie_value_display" class="badge-value">5</span></label>
+                                <input type="range" class="form-range" min="0" max="40" step="1" id="nasycenie_value" name="nasycenie_value" value="5">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="gamma_enabled">Gamma</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="gamma_enabled" name="gamma_enabled" data-bs-toggle="collapse" data-bs-target="#gamma_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="gamma_collapse">
+                                <label for="gamma_value" class="form-label small text-muted mt-1 form-range-label">Wartość (0-40): <span id="gamma_value_display" class="badge-value">10</span></label>
+                                <input type="range" class="form-range" min="0" max="40" step="1" id="gamma_value" name="gamma_value" value="10">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="hue_enabled">Przesunięcie Barwy (Hue)</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="hue_enabled" name="hue_enabled" data-bs-toggle="collapse" data-bs-target="#hue_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="hue_collapse">
+                                <label for="hue_value" class="form-label small text-muted mt-1 form-range-label">Stopnie (-180 do 180): <span id="hue_value_display" class="badge-value">10</span></label>
+                                <input type="range" class="form-range" min="-180" max="180" step="1" id="hue_value" name="hue_value" value="10">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="curves_strong_contrast_enabled">Korekta Tonalna (Mocny Kontrast)</label>
+                                <div class="form-check form-switch">
+                                     <input class="form-check-input" type="checkbox" role="switch" id="curves_strong_contrast_enabled" name="curves_strong_contrast_enabled" checked>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="szum_enabled">Dodanie Szumu</label>
+                                <div class="form-check form-switch">
+                                     <input class="form-check-input" type="checkbox" role="switch" id="szum_enabled" name="szum_enabled" data-bs-toggle="collapse" data-bs-target="#szum_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="szum_collapse">
+                                <label for="szum_value" class="form-label small text-muted mt-1 form-range-label">Siła (0-40): <span id="szum_value_display" class="badge-value">5</span></label>
+                                <input type="range" class="form-range" min="0" max="40" step="1" id="szum_value" name="szum_value" value="5">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="gblur_enabled">Rozmycie Gaussowskie</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="gblur_enabled" name="gblur_enabled" data-bs-toggle="collapse" data-bs-target="#gblur_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="gblur_collapse">
+                                <label for="gblur_sigma" class="form-label small text-muted mt-1 form-range-label">Sigma (0-70 -> 0.0-0.7): <span id="gblur_sigma_display" class="badge-value">30</span></label>
+                                <input type="range" class="form-range" min="0" max="70" step="1" id="gblur_sigma" name="gblur_sigma" value="30">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="boxblur_enabled">Rozmycie Pudełkowe</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="boxblur_enabled" name="boxblur_enabled" data-bs-toggle="collapse" data-bs-target="#boxblur_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="boxblur_collapse">
+                                <label for="boxblur_luma_radius" class="form-label small text-muted mt-1 form-range-label">Promień (0-10): <span id="boxblur_luma_radius_display" class="badge-value">2</span></label>
+                                <input type="range" class="form-range" min="0" max="10" step="1" id="boxblur_luma_radius" name="boxblur_luma_radius" value="2">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="unsharp_enabled">Wyostrzanie (Unsharp Mask)</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="unsharp_enabled" name="unsharp_enabled" data-bs-toggle="collapse" data-bs-target="#unsharp_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="unsharp_collapse">
+                                <label for="unsharp_luma_msize" class="form-label small text-muted mt-1 form-range-label">Rozmiar matrycy X/Y (3-23, nieparzyste): <span id="unsharp_luma_msize_display" class="badge-value">5</span></label>
+                                <input type="range" class="form-range" min="3" max="23" step="2" id="unsharp_luma_msize" name="unsharp_luma_msize" value="5">
+
+                                <label for="unsharp_luma_amount" class="form-label small text-muted mt-1 form-range-label">Siła (-1.5 do 1.5, krok 0.5): <span id="unsharp_luma_amount_display" class="badge-value">1.5</span></label>
+                                <input type="range" class="form-range" min="-1.5" max="1.5" step="0.5" id="unsharp_luma_amount" name="unsharp_luma_amount" value="1.5">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                             <div class="form-label-group">
+                                <label class="form-check-label" for="colorbalance_shadows_enabled">Balans Kolorów (Cienie)</label>
+                                 <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="colorbalance_shadows_enabled" name="colorbalance_shadows_enabled" data-bs-toggle="collapse" data-bs-target="#colorbalance_shadows_collapse" checked>
+                                 </div>
+                            </div>
+                            <div class="collapse show" id="colorbalance_shadows_collapse">
+                                <label for="colorbalance_shadows_rs" class="form-label small text-muted mt-1 form-range-label">R/G/B Cienie (-1.0 do 1.0): <span id="colorbalance_shadows_rs_display" class="badge-value">0.3</span></label>
+                                <input type="range" class="form-range" min="-1.0" max="1.0" step="0.01" id="colorbalance_shadows_rs" name="colorbalance_shadows_rs" value="0.3">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="motion_blur_enabled">Zaawansowane Rozmycie w Ruchu</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="motion_blur_enabled" name="motion_blur_enabled" checked>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="lenscorrection_enabled">Korekcja Obiektywu</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="lenscorrection_enabled" name="lenscorrection_enabled" data-bs-toggle="collapse" data-bs-target="#lenscorrection_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="lenscorrection_collapse">
+                                <label for="lenscorrection_k1k2" class="form-label small text-muted mt-1 form-range-label">k1/k2 (0-100 -> 0.00-1.00): <span id="lenscorrection_k1k2_display" class="badge-value">2</span></label>
+                                <input type="range" class="form-range" min="0" max="100" step="1" id="lenscorrection_k1k2" name="lenscorrection_k1k2" value="2">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="vignette_enabled">Efekt Winiety</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="vignette_enabled" name="vignette_enabled" checked>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                             <div class="form-label-group">
+                                <label class="form-check-label" for="fade_in_enabled">Efekt Fade-In</label>
+                                 <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="fade_in_enabled" name="fade_in_enabled" data-bs-toggle="collapse" data-bs-target="#fade_in_collapse" checked>
+                                 </div>
+                            </div>
+                            <div class="collapse show" id="fade_in_collapse">
+                                <label for="fade_in_nb_frames" class="form-label small text-muted mt-1 form-range-label">Liczba klatek (0-300): <span id="fade_in_nb_frames_display" class="badge-value">30</span></label>
+                                <input type="range" class="form-range" min="0" max="300" step="10" id="fade_in_nb_frames" name="fade_in_nb_frames" value="30">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="fade_out_enabled">Efekt Fade-Out</label>
+                                <div class="form-check form-switch">
+                                     <input class="form-check-input" type="checkbox" role="switch" id="fade_out_enabled" name="fade_out_enabled" data-bs-toggle="collapse" data-bs-target="#fade_out_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="fade_out_collapse">
+                                <label for="fade_out_nb_frames" class="form-label small text-muted mt-1 form-range-label">Liczba klatek (0-300): <span id="fade_out_nb_frames_display" class="badge-value">30</span></label>
+                                <input type="range" class="form-range" min="0" max="300" step="10" id="fade_out_nb_frames" name="fade_out_nb_frames" value="30">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="hqdn3d_enabled">Odszumianie Wideo (hqdn3d)</label>
+                                <div class="form-check form-switch">
+                                     <input class="form-check-input" type="checkbox" role="switch" id="hqdn3d_enabled" name="hqdn3d_enabled" checked>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <h5 class="mt-3 mb-2 text-muted" style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Przetwarzanie Audio</h5>
+
+                        <div class="mb-2">
+                             <div class="form-label-group">
+                                <label class="form-check-label" for="audio_prep_enabled">Przygotowanie Audio (Cisza na początku)</label>
+                                 <div class="form-check form-switch">
+                                     <input class="form-check-input" type="checkbox" role="switch" id="audio_prep_enabled" name="audio_prep_enabled" data-bs-toggle="collapse" data-bs-target="#audio_prep_collapse" checked>
+                                 </div>
+                            </div>
+                            <div class="collapse show" id="audio_prep_collapse">
+                                <label for="audio_prep_silence_duration" class="form-label small text-muted mt-1 form-range-label">Długość ciszy (0-15s): <span id="audio_prep_silence_duration_display" class="badge-value">1.5</span>s</label>
+                                <input type="range" class="form-range" min="0" max="15" step="0.5" id="audio_prep_silence_duration" name="audio_prep_silence_duration" value="1.5">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+
+                        <div class="mb-2">
+                            <div class="form-label-group">
+                                <label class="form-check-label" for="przysp_audio_enabled">Przyspieszenie Audio</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="przysp_audio_enabled" name="przysp_audio_enabled" data-bs-toggle="collapse" data-bs-target="#przysp_audio_collapse" checked>
+                                </div>
+                            </div>
+                            <div class="collapse show" id="przysp_audio_collapse">
+                                <label for="przysp_audio_value" class="form-label small text-muted mt-1 form-range-label">Procent (0-30%): <span id="przysp_audio_value_display" class="badge-value">3</span>%</label>
+                                <input type="range" class="form-range" min="0" max="30" step="1" id="przysp_audio_value" name="przysp_audio_value" value="3">
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        
+                        <button type="submit" id="submitGenerationButton" class="btn btn-lg w-100 mt-3" style="background-color: var(--accent-color); color: #000; font-weight: 600; padding: 0.6rem 2rem; border: none;" disabled>
+                            <i class="bi bi-stars me-2"></i>Rozpocznij Generację
+                        </button>
+                    </div> 
+                </div> 
+            </div> 
+
+            <div class="col-lg-8">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <div class="card">
+                             <div class="card-header">
+                                <i class="bi bi-camera-reels me-2"></i>Podgląd
+                            </div>
+                            <div class="card-body text-center d-flex flex-column justify-content-center align-items-center p-3" style="min-height: 200px;">
+                                <div id="video_preview_placeholder">
+                                    <i class="bi bi-film" style="font-size: 3rem; color: var(--secondary-text);"></i>
+                                    <p class="text-muted mt-2 small">Wybierz plik wideo, aby zobaczyć podgląd.</p>
+                                </div>
+                                <div id="video_preview_container" style="display: none; max-width: 100%;">
+                                    <video id="video_preview" controls style="max-width: 100%; max-height: 300px; border-radius: 8px;"></video>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12"> 
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-gem me-2"></i>Wynik Generacji
+                            </div>
+                            <div class="card-body text-center d-flex flex-column justify-content-center align-items-center p-3" style="min-height: 150px;">
+                                <div id="generation_result_placeholder">
+                                    <i class="bi bi-hourglass-split" style="font-size: 3rem; color: var(--accent-color);"></i>
+                                    <p class="text-muted mt-2 small">Po zakończeniu generacji, tutaj pojawi się link do pobrania.</p>
+                                </div>
+                                <div id="generation_progress_container" class="mt-2 w-100" style="display: none;">
+                                    <div class="progress" role="progressbar" aria-label="Progres generacji" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="height: 20px">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated bg-info text-dark" style="width: 0%">0%</div>
+                                    </div>
+                                    <p id="generation_status_text" class="small text-muted mt-1"></p>
+                                </div>
+                                <div id="generation_result_link_container" class="mt-3" style="display: none;">
+                                    <a href="#" id="download_link" class="btn btn-success btn-lg"><i class="bi bi-download me-2"></i>Pobierz Wynik</a>
+                                </div>
+                                <div id="generation_error_container" class="alert alert-danger mt-3" style="display: none; width: 100%;">
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    </form>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const videoFileInput = document.getElementById('video_file_input');
+    const serverVideoFilenameInput = document.getElementById('server_video_filename');
+    const uploadStatusDiv = document.getElementById('upload_status');
+    const generationForm = document.getElementById('generationForm');
+    const submitGenerationButton = document.getElementById('submitGenerationButton');
+
+    const videoPreviewContainer = document.getElementById('video_preview_container');
+    const videoPreviewPlaceholder = document.getElementById('video_preview_placeholder');
+    const videoPreview = document.getElementById('video_preview');
+
+    if (videoFileInput) {
+        videoFileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+
+            if (file && file.type.startsWith('video/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    videoPreview.src = e.target.result;
+                    videoPreviewContainer.style.display = 'block';
+                    videoPreviewPlaceholder.style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                videoPreviewContainer.style.display = 'none';
+                videoPreviewPlaceholder.style.display = 'block';
+                videoPreview.src = '';
+                submitGenerationButton.disabled = true;
+                uploadStatusDiv.textContent = '';
+                uploadStatusDiv.className = 'form-text small mt-1'; // Reset class
+                serverVideoFilenameInput.value = '';
+                return;
+            }
+
+            if (file) {
+                uploadStatusDiv.textContent = 'Przesyłanie pliku...';
+                uploadStatusDiv.className = 'form-text small mt-1 text-muted';
+                submitGenerationButton.disabled = true;
+                serverVideoFilenameInput.value = '';
+
+                const formData = new FormData();
+                formData.append('video_file', file);
+                
+                const csrfTokenInput = generationForm.querySelector('input[name="csrf_token"]');
+                if (csrfTokenInput) {
+                    formData.append('csrf_token', csrfTokenInput.value);
+                } else {
+                    console.warn('CSRF token input not found for AJAX upload.');
+                    // Możesz chcieć obsłużyć ten przypadek, np. blokując wysyłkę
+                }
+
+
+                fetch("{{ url_for('ajax_upload_video') }}", {
+                    method: 'POST',
+                    body: formData,
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errData => {
+                            throw new Error(errData.message || `Błąd serwera: ${response.status}`);
+                        }).catch(() => {
+                            throw new Error(`Błąd serwera: ${response.status}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success && data.server_filename) {
+                        uploadStatusDiv.textContent = `Plik "${file.name}" został przesłany. Gotowy do generacji.`;
+                        uploadStatusDiv.classList.remove('text-danger', 'text-muted');
+                        uploadStatusDiv.classList.add('text-success');
+                        serverVideoFilenameInput.value = data.server_filename;
+                        submitGenerationButton.disabled = false;
+                    } else {
+                        uploadStatusDiv.textContent = `Błąd przesyłania: ${data.message || 'Nieznany błąd.'}`;
+                        uploadStatusDiv.classList.remove('text-success', 'text-muted');
+                        uploadStatusDiv.classList.add('text-danger');
+                        serverVideoFilenameInput.value = '';
+                        submitGenerationButton.disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Błąd podczas natychmiastowego przesyłania:', error);
+                    uploadStatusDiv.textContent = `Błąd: ${error.message}. Spróbuj wybrać plik ponownie.`;
+                    uploadStatusDiv.classList.remove('text-success', 'text-muted');
+                    uploadStatusDiv.classList.add('text-danger');
+                    serverVideoFilenameInput.value = '';
+                    submitGenerationButton.disabled = true;
+                });
+            }
+        });
+    }
+
+    const ranges = document.querySelectorAll('input[type="range"]');
+    ranges.forEach(range => {
+        const displayId = range.id + '_display';
+        const displayElement = document.getElementById(displayId);
+        if (displayElement) {
+            displayElement.textContent = range.value;
+            range.addEventListener('input', function() {
+                displayElement.textContent = this.value;
+            });
+        }
+    });
+
+    if (generationForm) {
+        generationForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            if (!serverVideoFilenameInput.value) {
+                uploadStatusDiv.textContent = 'Błąd: Brak przesłanego pliku. Wybierz plik.';
+                uploadStatusDiv.classList.remove('text-success', 'text-muted');
+                uploadStatusDiv.classList.add('text-danger');
+                return;
+            }
+
+            const formData = new FormData(generationForm);
+            formData.delete('video_file_input_for_ajax'); // Usuń pole input pliku, bo już nie jest potrzebne
+
+            const originalButtonHTML = submitGenerationButton.innerHTML;
+            
+            submitGenerationButton.disabled = true;
+            submitGenerationButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Przetwarzanie...';
+            
+            const resultPlaceholder = document.getElementById('generation_result_placeholder');
+            const resultLinkContainer = document.getElementById('generation_result_link_container');
+            const downloadLink = document.getElementById('download_link');
+            const errorContainer = document.getElementById('generation_error_container');
+            const progressContainer = document.getElementById('generation_progress_container');
+            const progressBar = progressContainer ? progressContainer.querySelector('.progress-bar') : null;
+            const statusText = document.getElementById('generation_status_text');
+
+            resultPlaceholder.style.display = 'none';
+            resultLinkContainer.style.display = 'none';
+            errorContainer.style.display = 'none';
+            errorContainer.textContent = '';
+            if(progressContainer) progressContainer.style.display = 'block';
+            if(progressBar) {
+                progressBar.style.width = '0%';
+                progressBar.textContent = '0%';
+            }
+            if(statusText) statusText.textContent = 'Rozpoczynanie przetwarzania...';
+
+            let progress = 0;
+            const interval = setInterval(function() {
+                progress += 10;
+                if (progressBar) {
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = progress + '%';
+                }
+                if (statusText) {
+                    if(progress < 70) statusText.textContent = 'Przetwarzanie wideo...';
+                    else statusText.textContent = 'Finalizowanie...';
+                }
+                if (progress >= 95) {
+                    clearInterval(interval);
+                }
+            }, 200);
+
+            fetch(generationForm.action, {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => {
+                clearInterval(interval);
+                if(progressBar) {
+                    progressBar.style.width = '100%';
+                    progressBar.textContent = '100%';
+                }
+                if(statusText) statusText.textContent = 'Odpowiedź serwera...';
+                if (!response.ok) {
+                    return response.json().then(errData => {
+                        throw { status: response.status, data: errData };
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                 if (data.success) {
+                    if(progressContainer) progressContainer.style.display = 'none';
+                    resultPlaceholder.style.display = 'none';
+                    downloadLink.href = data.download_url;
+                    downloadLink.setAttribute('download', data.download_url.split('/').pop());
+                    resultLinkContainer.style.display = 'block';
+                    if(statusText) statusText.textContent = 'Gotowe!';
+
+                    const mainContainer = document.querySelector('main.container-fluid');
+                    let existingAlert = mainContainer.querySelector('.alert-success-generated');
+                    if (existingAlert) existingAlert.remove();
+
+                    const alertSuccess = document.createElement('div');
+                    alertSuccess.className = 'alert alert-success alert-dismissible fade show mt-3 alert-success-generated';
+                    alertSuccess.setAttribute('role', 'alert');
+                    alertSuccess.innerHTML = `${data.message || 'Przetwarzanie zakończone!'} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+                    if(mainContainer) mainContainer.insertBefore(alertSuccess, mainContainer.firstChild);
+
+                } else {
+                    if(progressContainer) progressContainer.style.display = 'none';
+                    resultPlaceholder.style.display = 'block';
+                    errorContainer.innerHTML = `<strong>Błąd:</strong> ${data.message || 'Wystąpił nieznany błąd.'} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="this.parentElement.style.display='none'"></button>`;
+                    errorContainer.style.display = 'block';
+                     if(statusText) statusText.textContent = 'Błąd!';
+                }
+            })
+            .catch(error => {
+                clearInterval(interval);
+                console.error('Error object:', error);
+                if(progressContainer) progressContainer.style.display = 'none';
+                resultPlaceholder.style.display = 'block';
+                let errorMessage = 'Błąd komunikacji z serwerem.';
+                if (error.status && error.data && error.data.message) {
+                    errorMessage = `Błąd ${error.status}: ${error.data.message}`;
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                errorContainer.innerHTML = `<strong>Błąd krytyczny:</strong> ${errorMessage} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="this.parentElement.style.display='none'"></button>`;
+                errorContainer.style.display = 'block';
+                if(statusText) statusText.textContent = 'Błąd krytyczny!';
+            })
+            .finally(() => {
+                submitGenerationButton.disabled = false;
+                if (!serverVideoFilenameInput.value) {
+                     submitGenerationButton.disabled = true;
+                }
+                submitGenerationButton.innerHTML = originalButtonHTML;
+            });
+        });
+    }
+});
+</script>
+
+{% endblock main_content %}

@@ -1,0 +1,127 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Zarządzanie Użytkownikami{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Zarządzanie Użytkownikami</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="card">
+    <div class="card-header">Lista Zarejestrowanych Użytkowników</div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nazwa użytkownika</th>
+                        <th>Status</th>
+                        <th>Ważność konta</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="{{ 'table-danger' if user.is_blocked else '' }}">
+                        <td>{{ user.id }}</td>
+                        <td><strong>{{ user.username }}</strong> {% if user.is_admin %}<span class="badge bg-primary ms-2">Admin</span>{% endif %}</td>
+                        <td>
+                            {% if user.is_blocked %}
+                                <span class="badge bg-danger">Zablokowany</span>
+                            {% elif user.is_admin or not user.access_expires_at or user.access_expires_at > now %}
+                                <span class="badge bg-success">Aktywny</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Wygasł</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.access_expires_at and user.access_expires_at > now %}
+                                {{ (user.access_expires_at - now).days }} dni
+                            {% elif user.is_admin %}
+                                Bez limitu
+                            {% else %}
+                                ---
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="btn btn-sm btn-outline-light" title="Zobacz szczegóły i sesje"><i class="bi bi-eye-fill"></i></a>
+                                {% if not user.is_admin %}
+                                    <a href="{{ url_for('impersonate_user', user_id=user.id) }}" class="btn btn-sm btn-outline-info" title="Wciel się w użytkownika"><i class="bi bi-person-fill-gear"></i></a>
+                                    <a href="{{ url_for('edit_user', user_id=user.id) }}" class="btn btn-sm btn-outline-secondary" title="Edytuj użytkownika"><i class="bi bi-pencil-fill"></i></a>
+                                    {% if user.is_blocked %}
+                                        <form method="post" action="{{ url_for('unblock_user', user_id=user.id) }}" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Odblokuj użytkownika"><i class="bi bi-unlock-fill"></i></button>
+                                        </form>
+                                    {% else %}
+                                        <button type="button" class="btn btn-sm btn-outline-danger block-user-btn" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#blockUserModal"
+                                                data-user-id="{{ user.id }}"
+                                                data-user-name="{{ user.username }}" title="Zablokuj użytkownika">
+                                            <i class="bi bi-slash-circle-fill"></i>
+                                        </button>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="blockUserModal" tabindex="-1" aria-labelledby="blockUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="blockUserModalLabel">Potwierdzenie blokady</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Czy na pewno chcesz na stałe zablokować użytkownika <strong id="userNameToBlock"></strong>? <br>
+        Wszystkie jego aktywne sesje zostaną zakończone, a klucz, którego użył, zostanie zablokowany.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Nie, anuluj</button>
+        <form id="blockUserForm" method="post" style="display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger">Tak, zablokuj</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var blockUserModal = document.getElementById('blockUserModal');
+    if(blockUserModal) {
+        blockUserModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var userId = button.getAttribute('data-user-id');
+            var userName = button.getAttribute('data-user-name');
+            var modalBodyStrong = blockUserModal.querySelector('#userNameToBlock');
+            var blockForm = blockUserModal.querySelector('#blockUserForm');
+            modalBodyStrong.textContent = userName;
+            blockForm.action = '/admin/user/block/' + userId;
+        });
+    }
+});
+</script>
+{% endblock %}

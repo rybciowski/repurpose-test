@@ -1,0 +1,46 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Ustawienia Systemu{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Ustawienia Systemu</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-gear-fill me-2"></i>Konfiguracja Zabezpieczeń
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <fieldset>
+                <legend class="fs-5 mb-3">Blokada konta po nieudanych próbach logowania</legend>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="LOCKOUT_ATTEMPTS" class="form-label">Liczba prób przed blokadą</label>
+                        <input type="number" class="form-control" id="LOCKOUT_ATTEMPTS" name="LOCKOUT_ATTEMPTS" value="{{ settings.get('LOCKOUT_ATTEMPTS', 5) }}" min="1">
+                        <div class="form-text">Po ilu nieudanych próbach logowania konto ma zostać tymczasowo zablokowane.</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="LOCKOUT_TIME_MINUTES" class="form-label">Czas trwania blokady (w minutach)</label>
+                        <input type="number" class="form-control" id="LOCKOUT_TIME_MINUTES" name="LOCKOUT_TIME_MINUTES" value="{{ settings.get('LOCKOUT_TIME_MINUTES', 5) }}" min="1">
+                        <div class="form-text">Na ile minut konto zostanie zablokowane.</div>
+                    </div>
+                </div>
+            </fieldset>
+            <hr>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save-fill me-2"></i>Zapisz ustawienia</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

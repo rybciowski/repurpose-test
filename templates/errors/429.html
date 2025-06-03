@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Zbyt Wiele Prób{% endblock %}
+{% block content %}
+<div class="card text-center border-danger">
+    <div class="card-header bg-danger text-white">
+        <h1>Błąd 429: Zbyt Wiele Prób</h1>
+    </div>
+    <div class="card-body">
+        <p>Przekroczyłeś limit prób dla tej operacji. Twoja możliwość jej wykonania została tymczasowo zablokowana.</p>
+        <p>Proszę spróbować ponownie za kilka minut.</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">Powrót na stronę główną</a>
+    </div>
+</div>
+{% endblock %}

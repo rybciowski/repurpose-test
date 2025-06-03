@@ -1,0 +1,60 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Zgłoszenia Użytkowników{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Zgłoszenia Użytkowników</h1>
+    <div class="btn-group">
+        <a href="{{ url_for('admin_tickets', status='wszystkie') }}" class="btn btn-outline-secondary {% if current_status == 'wszystkie' %}active{% endif %}">Wszystkie</a>
+        <a href="{{ url_for('admin_tickets', status='oczekujace') }}" class="btn btn-outline-warning {% if current_status == 'oczekujace' %}active{% endif %}">Oczekujące</a>
+        <a href="{{ url_for('admin_tickets', status='odpowiedziano') }}" class="btn btn-outline-info {% if current_status == 'odpowiedziano' %}active{% endif %}">Odpowiedziano</a>
+        <a href="{{ url_for('admin_tickets', status='zamkniete') }}" class="btn btn-outline-success {% if current_status == 'zamkniete' %}active{% endif %}">Zamknięte</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Temat</th>
+                        <th>Użytkownik</th>
+                        <th>Status</th>
+                        <th>Ostatnia Aktualizacja</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ticket in tickets %}
+                    <tr>
+                        <td>#{{ ticket.id }}</td>
+                        <td><strong>{{ ticket.subject }}</strong></td>
+                        <td>{{ ticket.user.username }}</td>
+                        <td>
+                            {% if ticket.status == 'Oczekujące' %}
+                                <span class="badge bg-warning text-dark">{{ ticket.status }}</span>
+                            {% elif ticket.status == 'Odpowiedziano' %}
+                                <span class="badge bg-info">{{ ticket.status }}</span>
+                            {% elif ticket.status == 'Zamknięte' %}
+                                <span class="badge bg-success">{{ ticket.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td><small>{{ ticket.last_updated.strftime('%Y-%m-%d %H:%M') }}</small></td>
+                        <td>
+                            <a href="{{ url_for('view_ticket', ticket_id=ticket.id) }}" class="btn btn-sm btn-outline-primary">Zobacz</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">Brak zgłoszeń o wybranym statusie.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

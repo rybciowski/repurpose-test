@@ -1,0 +1,104 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Szczegóły Użytkownika: {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-secondary me-3"><i class="bi bi-arrow-left"></i> Powrót</a>
+    <h1 class="mb-0">Szczegóły Użytkownika: <strong>{{ user.username }}</strong></h1>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="card mb-4">
+    <div class="card-header bg-success text-white">
+        <i class="bi bi-broadcast me-2"></i>Aktualnie Aktywne Sesje ({{ user.active_sessions|length }})
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Lokalizacja (IP)</th>
+                        <th>Urządzenie / System</th>
+                        <th>Przeglądarka</th>
+                        <th>Data zalogowania</th>
+                        <th>Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in user.active_sessions %}
+                    <tr>
+                        <td>
+                            <code>{{ session.ip_address }}</code><br>
+                            <small class="text-muted">{{ session.city or 'Brak danych' }}, {{ session.country or 'Brak danych' }}</small>
+                        </td>
+                        <td>{{ session.device_type or '---' }}<br><small class="text-muted">{{ session.os or '---' }}</small></td>
+                        <td>{{ session.browser or '---' }}</td>
+                        <td>{{ session.login_time.strftime('%Y-%m-%d %H:%M:%S') }} UTC</td>
+                        <td>
+                            <form method="post" action="{{ url_for('terminate_session', session_id=session.id) }}" onsubmit="return confirm('Czy na pewno chcesz zakończyć tę sesję?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Zakończ sesję">
+                                    <i class="bi bi-x-circle"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">Ten użytkownik nie ma obecnie aktywnych sesji.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-clock-history me-2"></i>Pełna Historia Logowań
+    </div>
+    <div class="card-body">
+        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Lokalizacja (IP)</th>
+                        <th>Urządzenie / System</th>
+                        <th>Przeglądarka</th>
+                        <th>Data zalogowania</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in user.login_history %}
+                    <tr>
+                        <td>
+                            <code>{{ entry.ip_address }}</code><br>
+                            <small class="text-muted">{{ entry.city or 'Brak danych' }}, {{ entry.country or 'Brak danych' }}</small>
+                        </td>
+                        <td>{{ entry.device_type or '---' }}<br><small class="text-muted">{{ entry.os or '---' }}</small></td>
+                        <td>{{ entry.browser or '---' }}</td>
+                        <td>{{ entry.login_time.strftime('%Y-%m-%d %H:%M:%S') }} UTC</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">Brak historii logowań dla tego użytkownika.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

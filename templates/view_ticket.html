@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}Zgłoszenie #{{ ticket.id }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('admin_tickets', status='oczekujace') if g.user.is_admin and not session.get('is_impersonating') else url_for('tickets') }}" class="btn btn-outline-secondary me-3"><i class="bi bi-arrow-left"></i> Powrót</a>
+    <div>
+        <h2 class="mb-0">Zgłoszenie #{{ ticket.id }}: {{ ticket.subject }}</h2>
+        <span class="text-muted">Utworzono: {{ ticket.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="card mb-4">
+    <div class="card-body" id="message-container">
+        {% for message in ticket.messages|sort(attribute='timestamp') %}
+        <div class="d-flex mb-3 {% if message.user.is_admin %}justify-content-start{% else %}justify-content-end{% endif %}">
+            <div class="card text-white {% if message.user.is_admin %}bg-secondary{% else %}bg-primary{% endif %}" style="max-width: 75%; width: fit-content;">
+                <div class="card-body" style="padding: 0.8rem 1rem;">
+                    <p class="card-text mb-2">{{ message.message | escape | nl2br | safe }}</p>
+                    <small class="d-block text-end text-white-50">
+                        {{ message.user.username }} @ {{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                    </small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% if ticket.status != 'Zamknięte' %}
+<div class="card">
+    <div class="card-header">
+        Odpowiedz
+    </div>
+    <div class="card-body">
+        <form method="post" id="reply-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <textarea name="message" id="message" rows="5" class="form-control" placeholder="Wpisz swoją odpowiedź..." required></textarea>
+            </div>
+            {% if g.user.is_admin and not session.get('is_impersonating') %}
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="close_ticket" name="close_ticket">
+                <label class="form-check-label" for="close_ticket">Zamknij zgłoszenie po wysłaniu odpowiedzi</label>
+            </div>
+            {% endif %}
+            <button type="submit" class="btn btn-success">Wyślij Odpowiedź</button>
+        </form>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-success text-center">
+    <i class="bi bi-check-circle-fill me-2"></i>To zgłoszenie zostało zamknięte.
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const socket = io();
+    // Bezpieczne przekazywanie zmiennych z Jinja2 do JS
+    const currentTicketId = parseInt("{{ ticket.id }}", 10);
+    const messageContainer = document.getElementById('message-container');
+
+    if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {
+        Notification.requestPermission();
+    }
+
+    // Funkcja do usuwania tagów HTML na potrzeby powiadomień
+    function stripHtml(html) {
+       let tmp = document.createElement("DIV");
+       tmp.innerHTML = html;
+       return tmp.textContent || tmp.innerText || "";
+    }
+
+    function showNotification(title, body) {
+        if (Notification.permission === 'granted') {
+            new Notification(title, { body: body, icon: "{{ url_for('static', filename='avatars/default.jpg') }}" });
+        }
+    }
+
+    function appendMessage(data) {
+        const messageIsFromAdmin = data.is_admin;
+        const divJustifyClass = messageIsFromAdmin ? 'justify-content-start' : 'justify-content-end';
+        const cardBgClass = messageIsFromAdmin ? 'bg-secondary' : 'bg-primary';
+
+        const messageWrapper = document.createElement('div');
+        messageWrapper.className = `d-flex mb-3 ${divJustifyClass}`;
+
+        const cardElement = document.createElement('div');
+        cardElement.className = `card text-white ${cardBgClass}`;
+        cardElement.style.maxWidth = '75%';
+        cardElement.style.width = 'fit-content';
+        
+        cardElement.innerHTML = `
+            <div class="card-body" style="padding: 0.8rem 1rem;">
+                <p class="card-text mb-2">${data.message}</p>
+                <small class="d-block text-end text-white-50">
+                    ${data.user} @ ${data.timestamp}
+                </small>
+            </div>
+        `;
+        messageWrapper.appendChild(cardElement);
+        messageContainer.appendChild(messageWrapper);
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+
+    socket.on('new_message', function(data) {
+        if (data.ticket_id === currentTicketId) {
+            appendMessage(data);
+            const cleanMessage = stripHtml(data.message);
+            showNotification(`Nowa odpowiedź w zgłoszeniu #${data.ticket_id}`, `${data.user}: ${cleanMessage}`);
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'admin/base.html' %}
+{% block title %}Edycja Użytkownika{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center mb-4">
+    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-secondary me-3"><i class="bi bi-arrow-left"></i> Powrót</a>
+    <h1 class="mb-0">Edycja Użytkownika: <strong>{{ user.username }}</strong></h1>
+</div>
+<div class="card">
+    <div class="card-header">Zmień dane</div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label for="access_expires_at" class="form-label">Nowa data wygaśnięcia dostępu</label>
+                <input type="datetime-local" class="form-control" id="access_expires_at" name="access_expires_at" value="{{ user.access_expires_at.strftime('%Y-%m-%dT%H:%M') if user.access_expires_at }}">
+                <div class="form-text">Ustaw datę przyszłą, aby przedłużyć dostęp. Pozostaw puste, aby usunąć limit czasowy.</div>
+            </div>
+            <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

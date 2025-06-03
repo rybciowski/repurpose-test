@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: webtest
+    ports:
+      - "80:5000"
+    volumes:
+      - .:/app
+    restart: unless-stopped

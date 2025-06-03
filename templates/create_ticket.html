@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Nowe Zgłoszenie{% endblock %}
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="mb-0">Utwórz Nowe Zgłoszenie</h3>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label for="subject" class="form-label">Temat</label>
+                <input type="text" name="subject" id="subject" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="message" class="form-label">Wiadomość</label>
+                <textarea name="message" id="message" rows="6" class="form-control" required></textarea>
+                <div class="form-text">Opisz swój problem lub pytanie tak szczegółowo, jak to możliwe.</div>
+            </div>
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('tickets') }}" class="btn btn-secondary">Anuluj</a>
+                <button type="submit" class="btn btn-primary">Wyślij Zgłoszenie</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

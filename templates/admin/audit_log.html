@@ -1,0 +1,54 @@
+{% extends 'admin/base.html' %}
+{% block title %}Dziennik Zdarzeń{% endblock %}
+{% block content %}
+<h1 class="mb-4">Globalny Dziennik Zdarzeń</h1>
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Czas</th>
+                        <th>Typ Zdarzenia</th>
+                        <th>Wykonawca</th>
+                        <th>Cel</th>
+                        <th>Szczegóły</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs.items %}
+                    <tr>
+                        <td><small>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small></td>
+                        <td><span class="badge bg-info text-dark">{{ log.event_type }}</span></td>
+                        <td>{{ log.actor.username if log.actor else 'System' }}</td>
+                        <td>{{ log.target.username if log.target else '---' }}</td>
+                        <td><small>{{ log.details }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if logs.pages > 1 %}
+    <div class="card-footer">
+        <nav aria-label="Nawigacja po dzienniku zdarzeń">
+            <ul class="pagination justify-content-center mb-0">
+                <li class="page-item {% if not logs.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('audit_log', page=logs.prev_num) }}">Poprzednia</a>
+                </li>
+                {% for page_num in logs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {{ 'active' if page_num == logs.page else '' }}"><a class="page-link" href="{{ url_for('audit_log', page=page_num) }}">{{ page_num }}</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not logs.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('audit_log', page=logs.next_num) }}">Następna</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

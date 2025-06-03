@@ -1,0 +1,19 @@
+{% extends 'auth_base.html' %}
+
+{% block title %}Witaj!{% endblock %}
+
+{% block content %}
+<div class="login-container text-center">
+    <div class="logo-container">
+        dJ
+    </div>
+
+    <h1 class="mb-3">Witaj w Aplikacji</h1>
+    <p class="mb-4">Zaloguj się, aby kontynuować, lub utwórz nowe konto, jeśli posiadasz klucz dostępu.</p>
+    
+    <div class="d-grid gap-2">
+        <a href="{{ url_for('login') }}" class="btn btn-submit">Zaloguj się</a>
+        <a href="{{ url_for('register') }}" class="btn btn-secondary">Zarejestruj się</a>
+    </div>
+</div>
+{% endblock %}

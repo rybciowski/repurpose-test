@@ -1,0 +1,13 @@
+Flask
+Flask-SQLAlchemy
+Werkzeug
+Flask-WTF
+Flask-Limiter
+Flask-SocketIO
+gunicorn
+eventlet
+requests
+Pillow
+user-agents
+psycopg2-binary
+ffmpeg-python   
