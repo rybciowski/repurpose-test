@@ -75,4 +75,4 @@
     
     # Polecenie uruchamiające aplikację przy użyciu Gunicorna z Eventlet dla SocketIO.
     # $PORT jest zmienną środowiskową dostarczaną przez Render.
-    CMD sh -c 'gunicorn --worker-class eventlet -w 1 --bind "0.0.0.0:$PORT" app:socketio'
+    CMD sh -c 'gunicorn --worker-class eventlet -w 1 --bind "0.0.0.0:$PORT" app:app'
