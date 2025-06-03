@@ -68,6 +68,19 @@
     .text-danger {
         color: #dc3545 !important; /* Bootstrap danger red */
     }
+
+    /* === NOWE STYLE DLA PODGLĄDU WYGENEROWANEGO WIDEO === */
+    #generated_video_preview_container {
+        display: none; /* Domyślnie ukryty */
+        max-width: 100%;
+        margin-top: 1rem;
+    }
+    #generated_video_preview {
+        max-width: 100%;
+        max-height: 300px; /* Aby zachować spójność z pierwszym podglądem */
+        border-radius: 8px;
+    }
+    /* === KONIEC NOWYCH STYLÓW === */
 </style>
 
 <main class="container-fluid mt-3 px-lg-4 px-md-3 px-2">
@@ -128,7 +141,7 @@
                                 </div>
                             </div>
                             <div class="collapse show" id="przysp_wideo_collapse">
-                                <label for="przysp_wideo_value" class="form-label small text-muted mt-1 form-range-label">Procent (0-30%): <span id="przysp_wideo_value_display" class="badge-value">3</span>%</label>
+                                <label for="przysp_wideo_value" class="form-label small text-muted mt-1 form-range-label">Procent (0-30%): <span id="przysp_wideo_value_display">3</span>%</label>
                                 <input type="range" class="form-range" min="0" max="30" step="1" id="przysp_wideo_value" name="przysp_wideo_value" value="3">
                             </div>
                         </div>
@@ -138,21 +151,21 @@
                             <div class="form-label-group">
                                 <label class="form-check-label" for="odbicie_lustrzane_enabled">Odbicie Lustrzane</label>
                                 <div class="form-check form-switch">
-                                     <input class="form-check-input" type="checkbox" role="switch" id="odbicie_lustrzane_enabled" name="odbicie_lustrzane_enabled" checked>
+                                    <input class="form-check-input" type="checkbox" role="switch" id="odbicie_lustrzane_enabled" name="odbicie_lustrzane_enabled" checked>
                                 </div>
                             </div>
                         </div>
                         <hr class="my-2">
 
                         <div class="mb-2">
-                             <div class="form-label-group">
+                            <div class="form-label-group">
                                 <label class="form-check-label" for="obrot_wideo_enabled">Obrót Wideo</label>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch" id="obrot_wideo_enabled" name="obrot_wideo_enabled" data-bs-toggle="collapse" data-bs-target="#obrot_wideo_collapse" checked>
                                 </div>
                             </div>
                             <div class="collapse show" id="obrot_wideo_collapse">
-                                <label for="obrot_wideo_value" class="form-label small text-muted mt-1 form-range-label">Stopnie (0-30): <span id="obrot_wideo_value_display" class="badge-value">1</span></label>
+                                <label for="obrot_wideo_value" class="form-label small text-muted mt-1 form-range-label">Stopnie (0-30): <span id="obrot_wideo_value_display">1</span></label>
                                 <input type="range" class="form-range" min="0" max="30" step="1" id="obrot_wideo_value" name="obrot_wideo_value" value="1">
                             </div>
                         </div>
@@ -162,11 +175,11 @@
                             <div class="form-label-group">
                                 <label class="form-check-label" for="crop_wideo_enabled">Przycięcie (Zoom Cyfrowy)</label>
                                 <div class="form-check form-switch">
-                                     <input class="form-check-input" type="checkbox" role="switch" id="crop_wideo_enabled" name="crop_wideo_enabled" data-bs-toggle="collapse" data-bs-target="#crop_wideo_collapse" checked>
+                                    <input class="form-check-input" type="checkbox" role="switch" id="crop_wideo_enabled" name="crop_wideo_enabled" data-bs-toggle="collapse" data-bs-target="#crop_wideo_collapse" checked>
                                 </div>
                             </div>
                             <div class="collapse show" id="crop_wideo_collapse">
-                                <label for="crop_wideo_value" class="form-label small text-muted mt-1 form-range-label">Piksele (0-30): <span id="crop_wideo_value_display" class="badge-value">10</span></label>
+                                <label for="crop_wideo_value" class="form-label small text-muted mt-1 form-range-label">Piksele (0-30): <span id="crop_wideo_value_display">10</span></label>
                                 <input type="range" class="form-range" min="0" max="30" step="1" id="crop_wideo_value" name="crop_wideo_value" value="10">
                             </div>
                         </div>
@@ -180,7 +193,7 @@
                                 </div>
                             </div>
                             <div class="collapse show" id="jasnosc_collapse">
-                                <label for="jasnosc_value" class="form-label small text-muted mt-1 form-range-label">Poziom (0-30): <span id="jasnosc_value_display" class="badge-value">2</span></label>
+                                <label for="jasnosc_value" class="form-label small text-muted mt-1 form-range-label">Poziom (0-30): <span id="jasnosc_value_display">2</span></label>
                                 <input type="range" class="form-range" min="0" max="30" step="1" id="jasnosc_value" name="jasnosc_value" value="2">
                             </div>
                         </div>
@@ -194,21 +207,21 @@
                                 </div>
                             </div>
                             <div class="collapse show" id="kontrast_collapse">
-                                <label for="kontrast_value" class="form-label small text-muted mt-1 form-range-label">Poziom (0-40): <span id="kontrast_value_display" class="badge-value">15</span></label>
+                                <label for="kontrast_value" class="form-label small text-muted mt-1 form-range-label">Poziom (0-40): <span id="kontrast_value_display">15</span></label>
                                 <input type="range" class="form-range" min="0" max="40" step="1" id="kontrast_value" name="kontrast_value" value="15">
                             </div>
                         </div>
                         <hr class="my-2">
 
                         <div class="mb-2">
-                             <div class="form-label-group">
+                            <div class="form-label-group">
                                 <label class="form-check-label" for="nasycenie_enabled">Nasycenie</label>
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch" id="nasycenie_enabled" name="nasycenie_enabled" data-bs-toggle="collapse" data-bs-target="#nasycenie_collapse" checked>
                                 </div>
                             </div>
                             <div class="collapse show" id="nasycenie_collapse">
-                                <label for="nasycenie_value" class="form-label small text-muted mt-1 form-range-label">Poziom (0-40): <span id="nasycenie_value_display" class="badge-value">5</span></label>
+                                <label for="nasycenie_value" class="form-label small text-muted mt-1 form-range-label">Poziom (0-40): <span id="nasycenie_value_display">5</span></label>
                                 <input type="range" class="form-range" min="0" max="40" step="1" id="nasycenie_value" name="nasycenie_value" value="5">
                             </div>
                         </div>
@@ -222,7 +235,7 @@
                                 </div>
                             </div>
                             <div class="collapse show" id="gamma_collapse">
-                                <label for="gamma_value" class="form-label small text-muted mt-1 form-range-label">Wartość (0-40): <span id="gamma_value_display" class="badge-value">10</span></label>
+                                <label for="gamma_value" class="form-label small text-muted mt-1 form-range-label">Wartość (0-40): <span id="gamma_value_display">10</span></label>
                                 <input type="range" class="form-range" min="0" max="40" step="1" id="gamma_value" name="gamma_value" value="10">
                             </div>
                         </div>
@@ -236,7 +249,7 @@
                                 </div>
                             </div>
                             <div class="collapse show" id="hue_collapse">
-                                <label for="hue_value" class="form-label small text-muted mt-1 form-range-label">Stopnie (-180 do 180): <span id="hue_value_display" class="badge-value">10</span></label>
+                                <label for="hue_value" class="form-label small text-muted mt-1 form-range-label">Stopnie (-180 do 180): <span id="hue_value_display">10</span></label>
                                 <input type="range" class="form-range" min="-180" max="180" step="1" id="hue_value" name="hue_value" value="10">
                             </div>
                         </div>
@@ -246,7 +259,7 @@
                             <div class="form-label-group">
                                 <label class="form-check-label" for="curves_strong_contrast_enabled">Korekta Tonalna (Mocny Kontrast)</label>
                                 <div class="form-check form-switch">
-                                     <input class="form-check-input" type="checkbox" role="switch" id="curves_strong_contrast_enabled" name="curves_strong_contrast_enabled" checked>
+                                    <input class="form-check-input" type="checkbox" role="switch" id="curves_strong_contrast_enabled" name="curves_strong_contrast_enabled" checked>
                                 </div>
                             </div>
                         </div>
@@ -256,11 +269,11 @@
                             <div class="form-label-group">
                                 <label class="form-check-label" for="szum_enabled">Dodanie Szumu</label>
                                 <div class="form-check form-switch">
-                                     <input class="form-check-input" type="checkbox" role="switch" id="szum_enabled" name="szum_enabled" data-bs-toggle="collapse" data-bs-target="#szum_collapse" checked>
+                                    <input class="form-check-input" type="checkbox" role="switch" id="szum_enabled" name="szum_enabled" data-bs-toggle="collapse" data-bs-target="#szum_collapse" checked>
                                 </div>
                             </div>
                             <div class="collapse show" id="szum_collapse">
-                                <label for="szum_value" class="form-label small text-muted mt-1 form-range-label">Siła (0-40): <span id="szum_value_display" class="badge-value">5</span></label>
+                                <label for="szum_value" class="form-label small text-muted mt-1 form-range-label">Siła (0-40): <span id="szum_value_display">5</span></label>
                                 <input type="range" class="form-range" min="0" max="40" step="1" id="szum_value" name="szum_value" value="5">
                             </div>
                         </div>
@@ -274,7 +287,7 @@
                                 </div>
                             </div>
                             <div class="collapse show" id="gblur_collapse">
-                                <label for="gblur_sigma" class="form-label small text-muted mt-1 form-range-label">Sigma (0-70 -> 0.0-0.7): <span id="gblur_sigma_display" class="badge-value">30</span></label>
+                                <label for="gblur_sigma" class="form-label small text-muted mt-1 form-range-label">Sigma (0-70 -> 0.0-0.7): <span id="gblur_sigma_display">30</span></label>
                                 <input type="range" class="form-range" min="0" max="70" step="1" id="gblur_sigma" name="gblur_sigma" value="30">
                             </div>
                         </div>
@@ -288,7 +301,7 @@
                                 </div>
                             </div>
                             <div class="collapse show" id="boxblur_collapse">
-                                <label for="boxblur_luma_radius" class="form-label small text-muted mt-1 form-range-label">Promień (0-10): <span id="boxblur_luma_radius_display" class="badge-value">2</span></label>
+                                <label for="boxblur_luma_radius" class="form-label small text-muted mt-1 form-range-label">Promień (0-10): <span id="boxblur_luma_radius_display">2</span></label>
                                 <input type="range" class="form-range" min="0" max="10" step="1" id="boxblur_luma_radius" name="boxblur_luma_radius" value="2">
                             </div>
                         </div>
@@ -302,24 +315,24 @@
                                 </div>
                             </div>
                             <div class="collapse show" id="unsharp_collapse">
-                                <label for="unsharp_luma_msize" class="form-label small text-muted mt-1 form-range-label">Rozmiar matrycy X/Y (3-23, nieparzyste): <span id="unsharp_luma_msize_display" class="badge-value">5</span></label>
+                                <label for="unsharp_luma_msize" class="form-label small text-muted mt-1 form-range-label">Rozmiar matrycy X/Y (3-23, nieparzyste): <span id="unsharp_luma_msize_display">5</span></label>
                                 <input type="range" class="form-range" min="3" max="23" step="2" id="unsharp_luma_msize" name="unsharp_luma_msize" value="5">
 
-                                <label for="unsharp_luma_amount" class="form-label small text-muted mt-1 form-range-label">Siła (-1.5 do 1.5, krok 0.5): <span id="unsharp_luma_amount_display" class="badge-value">1.5</span></label>
+                                <label for="unsharp_luma_amount" class="form-label small text-muted mt-1 form-range-label">Siła (-1.5 do 1.5, krok 0.5): <span id="unsharp_luma_amount_display">1.5</span></label>
                                 <input type="range" class="form-range" min="-1.5" max="1.5" step="0.5" id="unsharp_luma_amount" name="unsharp_luma_amount" value="1.5">
                             </div>
                         </div>
                         <hr class="my-2">
 
                         <div class="mb-2">
-                             <div class="form-label-group">
+                            <div class="form-label-group">
                                 <label class="form-check-label" for="colorbalance_shadows_enabled">Balans Kolorów (Cienie)</label>
-                                 <div class="form-check form-switch">
+                                <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch" id="colorbalance_shadows_enabled" name="colorbalance_shadows_enabled" data-bs-toggle="collapse" data-bs-target="#colorbalance_shadows_collapse" checked>
-                                 </div>
+                                </div>
                             </div>
                             <div class="collapse show" id="colorbalance_shadows_collapse">
-                                <label for="colorbalance_shadows_rs" class="form-label small text-muted mt-1 form-range-label">R/G/B Cienie (-1.0 do 1.0): <span id="colorbalance_shadows_rs_display" class="badge-value">0.3</span></label>
+                                <label for="colorbalance_shadows_rs" class="form-label small text-muted mt-1 form-range-label">R/G/B Cienie (-1.0 do 1.0): <span id="colorbalance_shadows_rs_display">0.3</span></label>
                                 <input type="range" class="form-range" min="-1.0" max="1.0" step="0.01" id="colorbalance_shadows_rs" name="colorbalance_shadows_rs" value="0.3">
                             </div>
                         </div>
@@ -343,7 +356,7 @@
                                 </div>
                             </div>
                             <div class="collapse show" id="lenscorrection_collapse">
-                                <label for="lenscorrection_k1k2" class="form-label small text-muted mt-1 form-range-label">k1/k2 (0-100 -> 0.00-1.00): <span id="lenscorrection_k1k2_display" class="badge-value">2</span></label>
+                                <label for="lenscorrection_k1k2" class="form-label small text-muted mt-1 form-range-label">k1/k2 (0-100 -> 0.00-1.00): <span id="lenscorrection_k1k2_display">2</span></label>
                                 <input type="range" class="form-range" min="0" max="100" step="1" id="lenscorrection_k1k2" name="lenscorrection_k1k2" value="2">
                             </div>
                         </div>
@@ -360,14 +373,14 @@
                         <hr class="my-2">
 
                         <div class="mb-2">
-                             <div class="form-label-group">
+                            <div class="form-label-group">
                                 <label class="form-check-label" for="fade_in_enabled">Efekt Fade-In</label>
-                                 <div class="form-check form-switch">
+                                <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch" id="fade_in_enabled" name="fade_in_enabled" data-bs-toggle="collapse" data-bs-target="#fade_in_collapse" checked>
-                                 </div>
+                                </div>
                             </div>
                             <div class="collapse show" id="fade_in_collapse">
-                                <label for="fade_in_nb_frames" class="form-label small text-muted mt-1 form-range-label">Liczba klatek (0-300): <span id="fade_in_nb_frames_display" class="badge-value">30</span></label>
+                                <label for="fade_in_nb_frames" class="form-label small text-muted mt-1 form-range-label">Liczba klatek (0-300): <span id="fade_in_nb_frames_display">30</span></label>
                                 <input type="range" class="form-range" min="0" max="300" step="10" id="fade_in_nb_frames" name="fade_in_nb_frames" value="30">
                             </div>
                         </div>
@@ -377,11 +390,11 @@
                             <div class="form-label-group">
                                 <label class="form-check-label" for="fade_out_enabled">Efekt Fade-Out</label>
                                 <div class="form-check form-switch">
-                                     <input class="form-check-input" type="checkbox" role="switch" id="fade_out_enabled" name="fade_out_enabled" data-bs-toggle="collapse" data-bs-target="#fade_out_collapse" checked>
+                                    <input class="form-check-input" type="checkbox" role="switch" id="fade_out_enabled" name="fade_out_enabled" data-bs-toggle="collapse" data-bs-target="#fade_out_collapse" checked>
                                 </div>
                             </div>
                             <div class="collapse show" id="fade_out_collapse">
-                                <label for="fade_out_nb_frames" class="form-label small text-muted mt-1 form-range-label">Liczba klatek (0-300): <span id="fade_out_nb_frames_display" class="badge-value">30</span></label>
+                                <label for="fade_out_nb_frames" class="form-label small text-muted mt-1 form-range-label">Liczba klatek (0-300): <span id="fade_out_nb_frames_display">30</span></label>
                                 <input type="range" class="form-range" min="0" max="300" step="10" id="fade_out_nb_frames" name="fade_out_nb_frames" value="30">
                             </div>
                         </div>
@@ -391,7 +404,7 @@
                             <div class="form-label-group">
                                 <label class="form-check-label" for="hqdn3d_enabled">Odszumianie Wideo (hqdn3d)</label>
                                 <div class="form-check form-switch">
-                                     <input class="form-check-input" type="checkbox" role="switch" id="hqdn3d_enabled" name="hqdn3d_enabled" checked>
+                                    <input class="form-check-input" type="checkbox" role="switch" id="hqdn3d_enabled" name="hqdn3d_enabled" checked>
                                 </div>
                             </div>
                         </div>
@@ -400,14 +413,14 @@
                         <h5 class="mt-3 mb-2 text-muted" style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Przetwarzanie Audio</h5>
 
                         <div class="mb-2">
-                             <div class="form-label-group">
+                            <div class="form-label-group">
                                 <label class="form-check-label" for="audio_prep_enabled">Przygotowanie Audio (Cisza na początku)</label>
-                                 <div class="form-check form-switch">
-                                     <input class="form-check-input" type="checkbox" role="switch" id="audio_prep_enabled" name="audio_prep_enabled" data-bs-toggle="collapse" data-bs-target="#audio_prep_collapse" checked>
-                                 </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="audio_prep_enabled" name="audio_prep_enabled" data-bs-toggle="collapse" data-bs-target="#audio_prep_collapse" checked>
+                                </div>
                             </div>
                             <div class="collapse show" id="audio_prep_collapse">
-                                <label for="audio_prep_silence_duration" class="form-label small text-muted mt-1 form-range-label">Długość ciszy (0-15s): <span id="audio_prep_silence_duration_display" class="badge-value">1.5</span>s</label>
+                                <label for="audio_prep_silence_duration" class="form-label small text-muted mt-1 form-range-label">Długość ciszy (0-15s): <span id="audio_prep_silence_duration_display">1.5</span>s</label>
                                 <input type="range" class="form-range" min="0" max="15" step="0.5" id="audio_prep_silence_duration" name="audio_prep_silence_duration" value="1.5">
                             </div>
                         </div>
@@ -421,7 +434,7 @@
                                 </div>
                             </div>
                             <div class="collapse show" id="przysp_audio_collapse">
-                                <label for="przysp_audio_value" class="form-label small text-muted mt-1 form-range-label">Procent (0-30%): <span id="przysp_audio_value_display" class="badge-value">3</span>%</label>
+                                <label for="przysp_audio_value" class="form-label small text-muted mt-1 form-range-label">Procent (0-30%): <span id="przysp_audio_value_display">3</span>%</label>
                                 <input type="range" class="form-range" min="0" max="30" step="1" id="przysp_audio_value" name="przysp_audio_value" value="3">
                             </div>
                         </div>
@@ -469,11 +482,12 @@
                                     </div>
                                     <p id="generation_status_text" class="small text-muted mt-1"></p>
                                 </div>
-                                <div id="generation_result_link_container" class="mt-3" style="display: none;">
-                                    <a href="#" id="download_link" class="btn btn-success btn-lg"><i class="bi bi-download me-2"></i>Pobierz Wynik</a>
+                                <div id="generated_video_preview_container" style="display: none; max-width: 100%;">
+                                    <video id="generated_video_preview" controls style="max-width: 100%; max-height: 300px; border-radius: 8px;"></video>
+                                    <a href="#" id="download_link_generated" class="btn btn-success btn-lg mt-3" style="display: none;"><i class="bi bi-download me-2"></i>Pobierz Wynik</a>
                                 </div>
                                 <div id="generation_error_container" class="alert alert-danger mt-3" style="display: none; width: 100%;">
-                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -494,6 +508,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const videoPreviewContainer = document.getElementById('video_preview_container');
     const videoPreviewPlaceholder = document.getElementById('video_preview_placeholder');
     const videoPreview = document.getElementById('video_preview');
+
+    // NOWE ELEMENTY DLA WYNIKU GENERACJI
+    const generatedVideoPreviewContainer = document.getElementById('generated_video_preview_container');
+    const generatedVideoPreview = document.getElementById('generated_video_preview');
+    const downloadLinkGenerated = document.getElementById('download_link_generated');
+
+    // Upewnij się, że te elementy są prawidłowo zdefiniowane (sprawdziłem, że są w Twoim HTML)
+    const generationResultPlaceholder = document.getElementById('generation_result_placeholder'); 
+    const generationProgressContainer = document.getElementById('generation_progress_container');
+    const progressBar = generationProgressContainer ? generationProgressContainer.querySelector('.progress-bar') : null;
+    const statusText = document.getElementById('generation_status_text');
+    const errorContainer = document.getElementById('generation_error_container');
+
 
     if (videoFileInput) {
         videoFileInput.addEventListener('change', function(event) {
@@ -517,6 +544,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 serverVideoFilenameInput.value = '';
                 return;
             }
+
+            // Ukryj sekcję z wygenerowanym wideo i błędy po nowym uploadzie
+            generatedVideoPreviewContainer.style.display = 'none';
+            generatedVideoPreview.src = '';
+            downloadLinkGenerated.style.display = 'none';
+            generationResultPlaceholder.style.display = 'block'; // Pokaż ponownie placeholder
+            errorContainer.style.display = 'none';
+            errorContainer.textContent = '';
+
 
             if (file) {
                 uploadStatusDiv.textContent = 'Przesyłanie pliku...';
@@ -608,19 +644,18 @@ document.addEventListener('DOMContentLoaded', function () {
             submitGenerationButton.disabled = true;
             submitGenerationButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Przetwarzanie...';
             
-            const resultPlaceholder = document.getElementById('generation_result_placeholder');
-            const resultLinkContainer = document.getElementById('generation_result_link_container');
-            const downloadLink = document.getElementById('download_link');
-            const errorContainer = document.getElementById('generation_error_container');
-            const progressContainer = document.getElementById('generation_progress_container');
-            const progressBar = progressContainer ? progressContainer.querySelector('.progress-bar') : null;
-            const statusText = document.getElementById('generation_status_text');
-
-            resultPlaceholder.style.display = 'none';
-            resultLinkContainer.style.display = 'none';
+            // Ukrywamy placeholder wyniku i pokazujemy kontener postępu
+            generationResultPlaceholder.style.display = 'none';
+            if(generationProgressContainer) generationProgressContainer.style.display = 'block';
+            
+            // Ukrywamy poprzednie podglądy i linki do pobierania
+            generatedVideoPreviewContainer.style.display = 'none';
+            generatedVideoPreview.src = '';
+            downloadLinkGenerated.style.display = 'none';
             errorContainer.style.display = 'none';
             errorContainer.textContent = '';
-            if(progressContainer) progressContainer.style.display = 'block';
+
+
             if(progressBar) {
                 progressBar.style.width = '0%';
                 progressBar.textContent = '0%';
@@ -663,11 +698,20 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .then(data => {
                  if (data.success) {
-                    if(progressContainer) progressContainer.style.display = 'none';
-                    resultPlaceholder.style.display = 'none';
-                    downloadLink.href = data.download_url;
-                    downloadLink.setAttribute('download', data.download_url.split('/').pop());
-                    resultLinkContainer.style.display = 'block';
+                    if(generationProgressContainer) generationProgressContainer.style.display = 'none';
+                    generationResultPlaceholder.style.display = 'none';
+                    errorContainer.style.display = 'none'; // Ukryj błędy
+                    
+                    // Pokaż kontener wideo i ustaw źródło
+                    generatedVideoPreviewContainer.style.display = 'block';
+                    generatedVideoPreview.src = data.preview_url;
+                    generatedVideoPreview.load(); // Załaduj wideo
+                    
+                    // Ustaw link do pobierania
+                    downloadLinkGenerated.href = data.download_url;
+                    downloadLinkGenerated.setAttribute('download', data.download_url.split('/').pop());
+                    downloadLinkGenerated.style.display = 'block'; // Pokaż przycisk pobierania
+                    
                     if(statusText) statusText.textContent = 'Gotowe!';
 
                     const mainContainer = document.querySelector('main.container-fluid');
@@ -681,8 +725,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     if(mainContainer) mainContainer.insertBefore(alertSuccess, mainContainer.firstChild);
 
                 } else {
-                    if(progressContainer) progressContainer.style.display = 'none';
-                    resultPlaceholder.style.display = 'block';
+                    if(generationProgressContainer) generationProgressContainer.style.display = 'none';
+                    generationResultPlaceholder.style.display = 'block'; // Pokaż ponownie placeholder
+                    generatedVideoPreviewContainer.style.display = 'none'; // Ukryj podgląd wygenerowanego wideo
+                    downloadLinkGenerated.style.display = 'none'; // Ukryj przycisk pobierania
                     errorContainer.innerHTML = `<strong>Błąd:</strong> ${data.message || 'Wystąpił nieznany błąd.'} <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="this.parentElement.style.display='none'"></button>`;
                     errorContainer.style.display = 'block';
                      if(statusText) statusText.textContent = 'Błąd!';
@@ -691,8 +737,10 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(error => {
                 clearInterval(interval);
                 console.error('Error object:', error);
-                if(progressContainer) progressContainer.style.display = 'none';
-                resultPlaceholder.style.display = 'block';
+                if(generationProgressContainer) generationProgressContainer.style.display = 'none';
+                generationResultPlaceholder.style.display = 'block'; // Pokaż ponownie placeholder
+                generatedVideoPreviewContainer.style.display = 'none'; // Ukryj podgląd wygenerowanego wideo
+                downloadLinkGenerated.style.display = 'none'; // Ukryj przycisk pobierania
                 let errorMessage = 'Błąd komunikacji z serwerem.';
                 if (error.status && error.data && error.data.message) {
                     errorMessage = `Błąd ${error.status}: ${error.data.message}`;

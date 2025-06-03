@@ -746,8 +746,14 @@ def generation():
             if success:
                 log_event('VIDEO_PROCESSED', f"Użytkownik '{g.user.username}' przetworzył plik: {server_filename}. Wynik: {output_filename_on_server}", actor_id=g.user.id)
                 download_url = url_for('download_generated_video', filename=output_filename_on_server, _external=True)
+                
+                # JEDYNA ZMIANA: Dodajemy preview_url do odpowiedzi JSON
+                preview_url = url_for('download_generated_video', filename=output_filename_on_server, _external=True) 
+                
                 print(f"--- GENERATE: Przetwarzanie zakończone sukcesem. Link do pobrania: {download_url} ---")
-                return jsonify({'success': True, 'download_url': download_url, 'message': 'Przetwarzanie zakończone!'})
+                
+                # Zmieniona odpowiedź JSON, dodająca 'preview_url'
+                return jsonify({'success': True, 'download_url': download_url, 'preview_url': preview_url, 'message': 'Przetwarzanie zakończone!'}) 
             else:
                 log_event('VIDEO_PROCESSING_FAILED', f"Błąd przetwarzania pliku {server_filename} dla '{g.user.username}'. Błąd: {message_or_path}", actor_id=g.user.id)
                 print(f"--- GENERATE: Błąd przetwarzania FFmpeg: {message_or_path} ---")
@@ -768,89 +774,24 @@ def generation():
     return render_template('generation.html', max_video_size_mb=max_video_size_mb)
 
 @app.route('/generated_video/<path:filename>')
-@login_required # Zakładam, że ten dekorator @login_required jest zdefiniowany w Twoim kodzie
+@login_required
 def download_generated_video(filename):
-    # Używamy secure_filename tak jak w Twojej oryginalnej funkcji, aby oczyścić nazwę pliku
     safe_filename = secure_filename(filename)
-    
-    directory = app.config.get('GENERATED_VIDEO_FOLDER') 
-    
-    # Sprawdzenie, czy konfiguracja folderu jest poprawna
-    if not directory:
-        print(f"--- DOWNLOAD ERROR: Klucz 'GENERATED_VIDEO_FOLDER' nie jest ustawiony w app.config! ---")
-        # Możesz dodać logowanie do AuditLog, jeśli masz taką funkcję
-        # np. log_event('DOWNLOAD_CONFIG_ERROR', 'Klucz GENERATED_VIDEO_FOLDER nie jest ustawiony')
-        flash("Błąd konfiguracji serwera uniemożliwia pobranie pliku.", "danger")
-        return redirect(url_for('generation')) # Przekieruj gdzieś sensownie
-
-    # Jeśli oryginalna nazwa pliku różni się od "bezpiecznej" nazwy, obsłuż to tak jak w Twoim kodzie
     if safe_filename != filename:
-        print(f"--- DOWNLOAD SECURITY WARNING: Oryginalna nazwa pliku '{filename}' została oczyszczona do '{safe_filename}' ---")
-        # Poniżej jest logika z Twojej oryginalnej funkcji dla tego przypadku
-        log_event('DOWNLOAD_SECURITY_ISSUE', f"Potencjalny problem z bezpieczeństwem przy pobieraniu pliku: oryginalny '{filename}', bezpieczny '{safe_filename}' przez '{g.user.username if hasattr(g, 'user') and g.user and hasattr(g.user, 'username') else 'N/A'}'", actor_id=g.user.id if hasattr(g, 'user') and g.user else None)
-        flash('Nieprawidłowa nazwa pliku (potencjalnie niebezpieczne znaki).', 'danger')
-        return redirect(url_for('generation')) # Lub inny odpowiedni redirect
-
-    filepath = os.path.join(directory, safe_filename) # Używamy bezpiecznej nazwy do tworzenia ścieżki
-
-    print(f"--- DOWNLOAD ATTEMPT ---")
-    user_display = "Niezidentyfikowany użytkownik" # Domyślna wartość
-    if hasattr(g, 'user') and g.user:
-        if hasattr(g.user, 'username') and g.user.username:
-            user_display = g.user.username
-        elif hasattr(g.user, 'id'): 
-            user_display = f"Użytkownik ID: {g.user.id}"
-    
-    print(f"--- User attempting download: {user_display} ---")
-    print(f"--- Requested filename (original): {filename} ---")
-    print(f"--- Requested filename (sanitized for path): {safe_filename} ---")
-    print(f"--- Serving directory configured as: {app.config.get('GENERATED_VIDEO_FOLDER', 'NOT SET')} ---")
-    print(f"--- Absolute serving directory path: {directory} ---")
-    print(f"--- Absolute filepath on server for download: {filepath} ---")
-    
-    dir_exists = os.path.exists(directory)
-    file_exists = os.path.exists(filepath)
-
-    print(f"--- Does serving directory exist? ({directory}): {dir_exists} ---")
-    print(f"--- Does file exist? ({filepath}): {file_exists} ---")
-    
-    if dir_exists:
-        try:
-            dir_contents = os.listdir(directory)
-            print(f"--- Contents of directory ({directory}): {dir_contents} ---")
-            if safe_filename not in dir_contents and file_exists:
-                    print(f"--- WARNING: Sanitized filename '{safe_filename}' not in os.listdir output but os.path.exists IS True. ---")
-            elif safe_filename not in dir_contents and not file_exists:
-                    print(f"--- ERROR: Sanitized filename '{safe_filename}' is NOT in directory listing AND os.path.exists is False. ---")
-        except Exception as e_listdir:
-            print(f"--- ERROR listing directory contents ({directory}): {e_listdir} ---")
-    else:
-        print(f"--- ERROR: Serving directory ({directory}) does NOT exist! Cannot serve file. ---")
-        log_event('DOWNLOAD_ERROR', f"Serving directory {directory} does not exist for user {user_display}, requested {filename}", actor_id=g.user.id if hasattr(g,'user') and g.user else None)
-        flash(f"Błąd konfiguracji: Katalog do pobierania '{directory}' nie istnieje.", "danger")
+        log_event('DOWNLOAD_SECURITY_ISSUE', f"Potencjalny problem z bezpieczeństwem przy pobieraniu pliku: oryginalny '{filename}', bezpieczny '{safe_filename}' przez '{g.user.username}'", actor_id=g.user.id)
+        flash('Nieprawidłowa nazwa pliku.', 'danger')
         return redirect(url_for('generation'))
-
-    if not file_exists:
-        print(f"--- ERROR: File ({filepath}) does NOT exist! Cannot send. ---")
-        log_event('DOWNLOAD_ERROR_FILE_NOT_FOUND', f"File {filepath} does not exist for user {user_display}, requested {filename}", actor_id=g.user.id if hasattr(g,'user') and g.user else None)
-        flash(f"Błąd: Plik '{safe_filename}' nie został znaleziony.", "danger")
-        # Dla debugowania, pokażmy zawartość katalogu, jeśli istnieje
-        if dir_exists:
-            # dir_contents_str = ", ".join(os.listdir(directory)) if os.path.exists(directory) else 'nie można wylistować katalogu'
-            # flash(f"Dostępne pliki: {dir_contents_str}", "info") # Można odkomentować dla debugowania na stronie
-            pass
-        return redirect(url_for('generation'))
-
     try:
-        print(f"--- Attempting to send file: {filepath} (using sanitized filename for send_from_directory: '{safe_filename}') ---")
-        # send_from_directory oczekuje nazwy pliku względnej do 'directory'
-        return send_from_directory(directory, safe_filename, as_attachment=True)
-    except Exception as e:
-        print(f"--- DOWNLOAD ERROR during send_from_directory for {filepath}: {e} ---")
-        print(f"--- Full traceback: ---")
-        print(traceback.format_exc()) # To wydrukuje pełny traceback błędu w logach Render
-        log_event('DOWNLOAD_ERROR_SENDFILE', f"Exception during send_from_directory for {filepath}, user {user_display}. Error: {str(e)}", actor_id=g.user.id if hasattr(g,'user') and g.user else None)
-        flash("Wystąpił błąd serwera podczas próby pobrania pliku. Proszę sprawdzić logi serwera.", "danger")
+        log_event('VIDEO_DOWNLOAD_ATTEMPT', f"Użytkownik '{g.user.username}' próbuje pobrać plik: {safe_filename}", actor_id=g.user.id)
+        # Zachowane as_attachment=True, jak w Twoim oryginalnym kodzie
+        return send_from_directory(app.config['GENERATED_VIDEO_FOLDER'], safe_filename, as_attachment=True) 
+    except FileNotFoundError:
+        flash('Nie znaleziono pliku do pobrania.', 'danger')
+        log_event('DOWNLOAD_FAILED_NOT_FOUND', f"Nie znaleziono pliku {safe_filename} do pobrania dla użytkownika '{g.user.username}'", actor_id=g.user.id)
+        return redirect(url_for('generation'))
+    except Exception as e_download:
+        flash(f'Wystąpił błąd podczas pobierania pliku: {str(e_download)}', 'danger')
+        log_event('DOWNLOAD_ERROR', f"Błąd pobierania pliku {safe_filename} przez '{g.user.username}'. Błąd: {str(e_download)}", actor_id=g.user.id)
         return redirect(url_for('generation'))
 
 
